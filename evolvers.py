@@ -59,18 +59,20 @@ class Predator(Organism):
         
     
     def eat(self, preys):
-        for prey in preys:
-            distance = ((self.x - prey.x) ** 2 + (self.y - prey.y) ** 2) ** 0.5
-            if distance < self.size + prey.size - 1:
-                prey.alive = False
-                self.hunger -= 2
+        if len(preys) > 10:  # won't eat remaining prey if too few to sustain further population
+            
+            for prey in preys:
+                distance = ((self.x - prey.x) ** 2 + (self.y - prey.y) ** 2) ** 0.5
+                if distance < self.size + prey.size - 1:
+                    prey.alive = False
+                    self.hunger -= 2
             
     
     def move(self, preys):
         if not self.target or not self.target.alive:
             self.target = r.choice(preys)
         
-        self.hunger += .02
+        self.hunger += .04
         if self.hunger >= 100:
             self.alive = False
 
@@ -85,7 +87,7 @@ class Predator(Organism):
     
     def split(self, predators):
         if self.hunger <= 0:
-            self.hunger = 20
+            self.hunger = 40
             child = Predator()
             child.x = self.x
             child.y = self.y
@@ -145,7 +147,7 @@ def run():
     running = True
     
     predators = [Predator() for x in range(2)]
-    preys = [Prey() for x in range(25)]
+    preys = [Prey() for x in range(50)]
     
     
     # Start the main loop for the game.
