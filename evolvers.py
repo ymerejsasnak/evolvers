@@ -11,18 +11,13 @@ BG_COLOR = (50, 100, 210)
 class Organism:
     
     def __init__(self):
-        self.size = 10
-        self.color = (200, 100, 100)
-        
-        self.x = r.randrange(self.size, SCR_WIDTH - self.size)
-        self.y = r.randrange(self.size, SCR_HEIGHT // 2)
-        self.direction = r.randrange(360)
+        pass
                 
-    def update(self):
+    def move(self):
         self.x += math.cos(self.direction * (math.pi / 180))
         self.y += math.sin(self.direction * (math.pi / 180))
         
-        self.direction = self.direction + r.randint(-10, 10)
+        self.direction = self.direction + r.randint(-self.direction_rate, self.direction_rate)
         
         # go in opposite direction if a wall is hit
         if self.x - self.size <= 0:
@@ -40,7 +35,44 @@ class Organism:
     
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
+
+
+class Predator(Organism):
+    
+    def __init__(self):
+        self.size = 15
+        self.color = (200, 100, 100)
         
+        self.x = r.randrange(self.size, SCR_WIDTH - self.size)
+        self.y = r.randrange(self.size, SCR_HEIGHT // 2 - self.size)
+        
+        self.direction = r.randrange(360)
+        self.direction_rate = r.randint(5, 25)
+    
+    def eat(self, preys):
+        for prey in preys:
+            distance = ((self.x - prey.x) ** 2 + (self.y - prey.y) ** 2) ** 0.5
+            if distance < self.size + prey.size - 1:
+                prey.alive = False
+        
+        
+class Prey(Organism):
+    
+    def __init__(self):
+        self.size = 5
+        self.color = (100, 200, 100)
+        self.alive = True
+        
+        self.x = r.randrange(self.size, SCR_WIDTH - self.size)
+        self.y = r.randrange(SCR_HEIGHT // 2 + self.size, SCR_HEIGHT - self.size)
+        
+        self.direction = r.randrange(360)
+        self.direction_rate = r.randint(5, 25)
+        
+        #traits to possibly inherit:
+        # speed, size, direction change rate, reproduction frequency, reproduction brood size, avoidance? (radius around them)
+    
+    
         
 
 
@@ -52,7 +84,8 @@ def run():
     
     running = True
     
-    organisms = [Organism() for x in range(20)]
+    predators = [Predator() for x in range(10)]
+    preys = [Prey() for x in range(100)]
     
     
     # Start the main loop for the game.
@@ -60,9 +93,17 @@ def run():
         
         screen.fill(BG_COLOR)
         
-        for organism in organisms:
-            organism.update()
-            organism.draw(screen)
+        for predator in predators:
+            predator.move()
+            predator.eat(preys)
+            predator.draw(screen)
+        
+        # delete any prey that were eaten
+        preys = [prey for prey in preys if prey.alive]
+            
+        for prey in preys:
+            prey.move()
+            prey.draw(screen)
     
         # Watch for keyboard and mouse events.
         for event in pygame.event.get():
