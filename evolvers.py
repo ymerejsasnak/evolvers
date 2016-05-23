@@ -40,13 +40,13 @@ class Organism:
 class Predator(Organism):
     
     def __init__(self):
-        self.size = r.randint(20, 30)
+        self.size = r.randint(25, 30)
         self.color = (r.randint(180, 220), r.randint(50, 90), r.randint(50, 90))
                 
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
         self.y = r.randrange(self.size, SCR_HEIGHT // 2 - self.size)
         
-        self.speed = r.uniform(0.5,1)
+        self.speed = r.uniform(0.7,1.1)
         self.direction = r.randrange(360)
         self.direction_randomness = r.randint(15, 35)
         
@@ -77,7 +77,7 @@ class Prey(Organism):
     
     def __init__(self):
         self.size = r.randint(5, 15)
-        self.color = (r.randint(50,150), r.randint(150, 250), r.randint(1, 100))
+        self.color = (r.randint(0,50), r.randint(10, 250), r.randint(10, 250))
         self.alive = True
         
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
@@ -86,7 +86,7 @@ class Prey(Organism):
         self.direction = r.randrange(360)
         self.direction_change = r.randint(5, 25)
         
-        self.speed = r.uniform(.8, 1.2)
+        self.speed = r.uniform(.9, 1.3)
         
         self.split_frequency = r.randint(500, 1000)
         #self.split_children = r.randint(2, 3)
@@ -123,7 +123,7 @@ def run():
     
     running = True
     
-    predators = [Predator() for x in range(5)]
+    predators = [Predator() for x in range(6)]
     preys = [Prey() for x in range(50)]
     
     
