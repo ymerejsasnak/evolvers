@@ -40,21 +40,37 @@ class Organism:
 class Predator(Organism):
     
     def __init__(self):
-        self.size = 25
-        self.color = (220, 80, 80)
-        
+        self.size = r.randint(20, 30)
+        self.color = (r.randint(180, 220), r.randint(50, 90), r.randint(50, 90))
+                
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
         self.y = r.randrange(self.size, SCR_HEIGHT // 2 - self.size)
         
-        self.speed = 0.5
+        self.speed = r.uniform(0.5,1)
         self.direction = r.randrange(360)
-        self.direction_change = r.randint(5, 25)
+        self.direction_randomness = r.randint(15, 35)
+        
+        self.target = None
+        
     
     def eat(self, preys):
         for prey in preys:
             distance = ((self.x - prey.x) ** 2 + (self.y - prey.y) ** 2) ** 0.5
             if distance < self.size + prey.size - 1:
                 prey.alive = False
+    
+    def move(self, preys):
+        if not self.target or not self.target.alive:
+            self.target = r.choice(preys)
+                
+        self.x += math.cos(self.direction * (math.pi / 180)) * self.speed
+        self.y += math.sin(self.direction * (math.pi / 180)) * self.speed
+        
+        self.direction = math.atan2(self.target.y - self.y, self.target.x - self.x) * (180 / math.pi)
+        
+        self.direction += self.direction_randomness
+        
+        # don't think I need to check for wall collision because target will not be out of bounds
         
         
 class Prey(Organism):
@@ -107,8 +123,8 @@ def run():
     
     running = True
     
-    predators = [Predator() for x in range(10)]
-    preys = [Prey() for x in range(20)]
+    predators = [Predator() for x in range(5)]
+    preys = [Prey() for x in range(50)]
     
     
     # Start the main loop for the game.
@@ -117,7 +133,7 @@ def run():
         screen.fill(BG_COLOR)
         
         for predator in predators:
-            predator.move()
+            predator.move(preys)
             predator.eat(preys)
             predator.draw(screen)
         
