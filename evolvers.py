@@ -14,10 +14,10 @@ class Organism:
         pass
                 
     def move(self):
-        self.x += math.cos(self.direction * (math.pi / 180))
-        self.y += math.sin(self.direction * (math.pi / 180))
+        self.x += math.cos(self.direction * (math.pi / 180)) * self.speed
+        self.y += math.sin(self.direction * (math.pi / 180)) * self.speed
         
-        self.direction = self.direction + r.randint(-self.direction_rate, self.direction_rate)
+        self.direction = self.direction + r.randint(-self.direction_change, self.direction_change)
         
         # go in opposite direction if a wall is hit
         if self.x - self.size <= 0:
@@ -40,14 +40,15 @@ class Organism:
 class Predator(Organism):
     
     def __init__(self):
-        self.size = 15
-        self.color = (200, 100, 100)
+        self.size = 25
+        self.color = (220, 80, 80)
         
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
         self.y = r.randrange(self.size, SCR_HEIGHT // 2 - self.size)
         
+        self.speed = 0.5
         self.direction = r.randrange(360)
-        self.direction_rate = r.randint(5, 25)
+        self.direction_change = r.randint(5, 25)
     
     def eat(self, preys):
         for prey in preys:
@@ -59,21 +60,43 @@ class Predator(Organism):
 class Prey(Organism):
     
     def __init__(self):
-        self.size = 5
-        self.color = (100, 200, 100)
+        self.size = r.randint(5, 15)
+        self.color = (r.randint(50,150), r.randint(150, 250), r.randint(1, 100))
         self.alive = True
         
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
         self.y = r.randrange(SCR_HEIGHT // 2 + self.size, SCR_HEIGHT - self.size)
         
         self.direction = r.randrange(360)
-        self.direction_rate = r.randint(5, 25)
+        self.direction_change = r.randint(5, 25)
         
-        #traits to possibly inherit:
-        # speed, size, direction change rate, reproduction frequency, reproduction brood size, avoidance? (radius around them)
-    
-    
+        self.speed = r.uniform(.8, 1.2)
         
+        self.split_frequency = r.randint(500, 1000)
+        #self.split_children = r.randint(2, 3)
+        self.split_counter = 0
+        
+        
+    def split(self, preys):
+        self.split_counter = (self.split_counter + 1) % self.split_frequency
+        
+        if self.split_counter == 0:
+            child = Prey()
+            child.x = self.x
+            child.y = self.y
+            
+            # inherited traits:
+            child.color = self.color
+            child.size = self.size + r.randint(-1, 1)
+            if child.size < 2:
+                child.size = 2
+            child.speed = self.speed + r.uniform(-.1, .1)
+            child.direction_change = self.direction_change + r.randint(-1, 1)
+            child.split_frequency = self.split_frequency + r.randint(-1, 10)
+            if child.split_frequency < 200:
+                child.split_frequency = 200
+            
+            preys.append(child)          
 
 
 def run():
@@ -85,7 +108,7 @@ def run():
     running = True
     
     predators = [Predator() for x in range(10)]
-    preys = [Prey() for x in range(100)]
+    preys = [Prey() for x in range(20)]
     
     
     # Start the main loop for the game.
@@ -103,6 +126,8 @@ def run():
             
         for prey in preys:
             prey.move()
+            if len(preys) < 2000:  # population limit (to keep computer from slowing to crawl)
+                prey.split(preys)
             prey.draw(screen)
     
         # Watch for keyboard and mouse events.
