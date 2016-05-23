@@ -40,7 +40,7 @@ class Organism:
 class Predator(Organism):
     
     def __init__(self):
-        self.size = r.randint(25, 30)
+        self.size = r.randint(20, 25)
         self.color = (r.randint(180, 220), r.randint(50, 90), r.randint(50, 90))
                 
         self.x = r.randrange(self.size, SCR_WIDTH - self.size)
@@ -50,7 +50,12 @@ class Predator(Organism):
         self.direction = r.randrange(360)
         self.direction_randomness = r.randint(15, 35)
         
+        self.hunger = 20
+        
         self.target = None
+        
+        self.alive = True
+        
         
     
     def eat(self, preys):
@@ -58,11 +63,17 @@ class Predator(Organism):
             distance = ((self.x - prey.x) ** 2 + (self.y - prey.y) ** 2) ** 0.5
             if distance < self.size + prey.size - 1:
                 prey.alive = False
+                self.hunger -= 2
+            
     
     def move(self, preys):
         if not self.target or not self.target.alive:
             self.target = r.choice(preys)
-                
+        
+        self.hunger += .02
+        if self.hunger >= 100:
+            self.alive = False
+
         self.x += math.cos(self.direction * (math.pi / 180)) * self.speed
         self.y += math.sin(self.direction * (math.pi / 180)) * self.speed
         
@@ -71,7 +82,15 @@ class Predator(Organism):
         self.direction += self.direction_randomness
         
         # don't think I need to check for wall collision because target will not be out of bounds
-        
+    
+    def split(self, predators):
+        if self.hunger <= 0:
+            self.hunger = 20
+            child = Predator()
+            child.x = self.x
+            child.y = self.y
+            predators.append(child)
+            
         
 class Prey(Organism):
     
@@ -88,7 +107,7 @@ class Prey(Organism):
         
         self.speed = r.uniform(.9, 1.3)
         
-        self.split_frequency = r.randint(500, 1000)
+        self.split_frequency = r.randint(800, 1000)
         #self.split_children = r.randint(2, 3)
         self.split_counter = 0
         
@@ -108,6 +127,8 @@ class Prey(Organism):
                 child.size = 2
             child.speed = self.speed + r.uniform(-.1, .1)
             child.direction_change = self.direction_change + r.randint(-1, 1)
+            if child.direction_change <= 0:
+                child.direction_change = 1
             child.split_frequency = self.split_frequency + r.randint(-1, 10)
             if child.split_frequency < 200:
                 child.split_frequency = 200
@@ -123,8 +144,8 @@ def run():
     
     running = True
     
-    predators = [Predator() for x in range(6)]
-    preys = [Prey() for x in range(50)]
+    predators = [Predator() for x in range(2)]
+    preys = [Prey() for x in range(25)]
     
     
     # Start the main loop for the game.
@@ -135,10 +156,13 @@ def run():
         for predator in predators:
             predator.move(preys)
             predator.eat(preys)
+            if len(predators) < 16:  #population limit on predators 
+                predator.split(predators)
             predator.draw(screen)
         
-        # delete any prey that were eaten
+        # delete any prey that were eaten and predators that starved
         preys = [prey for prey in preys if prey.alive]
+        predators = [predator for predator in predators if predator.alive]
             
         for prey in preys:
             prey.move()
