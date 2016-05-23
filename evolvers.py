@@ -11,11 +11,12 @@ BG_COLOR = (50, 100, 210)
 class Organism:
     
     def __init__(self):
-        self.x = r.randrange(10, SCR_WIDTH)
-        self.y = r.randrange(10, SCR_HEIGHT // 2)
-        self.direction = r.randrange(360)
-        
         self.size = 10
+        self.color = (200, 100, 100)
+        
+        self.x = r.randrange(self.size, SCR_WIDTH - self.size)
+        self.y = r.randrange(self.size, SCR_HEIGHT // 2)
+        self.direction = r.randrange(360)
                 
     def update(self):
         self.x += math.cos(self.direction * (math.pi / 180))
@@ -24,13 +25,21 @@ class Organism:
         self.direction = self.direction + r.randint(-10, 10)
         
         # go in opposite direction if a wall is hit
-        if self.x - self.size <= 0 or self.x + self.size >= SCR_WIDTH:
+        if self.x - self.size <= 0:
+            self.x = self.size            
+            self.direction = self.direction - 180            
+        elif self.x + self.size >= SCR_WIDTH:
+            self.x = SCR_WIDTH - self.size
             self.direction = self.direction - 180
-        if self.y - self.size <= 0 or self.y + self.size >= SCR_HEIGHT:
+        if self.y - self.size <= 0:
+            self.y = self.size
+            self.direction = self.direction - 180        
+        elif self.y + self.size >= SCR_HEIGHT:
+            self.y = SCR_HEIGHT - self.size
             self.direction = self.direction - 180
     
     def draw(self, screen):
-        pygame.draw.circle(screen, (200,100,100), (int(self.x), int(self.y)), self.size)
+        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.size)
         
         
 
